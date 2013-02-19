@@ -1,6 +1,7 @@
 require 'capybara'
 
 require 'sauce/config'
+require 'sauce/connect'
 require 'sauce/selenium'
 
 
@@ -9,13 +10,6 @@ $sauce_tunnel = nil
 module Sauce
   module Capybara
     def connect_tunnel(options={})
-      begin
-        require 'sauce/connect'
-      rescue LoadError
-        puts 'Please install the `sauce-connect` gem if you intend on using Sauce Connect with your tests!'
-        raise
-      end
-
       unless $sauce_tunnel.nil?
         return $sauce_tunnel
       end
@@ -60,13 +54,12 @@ module Sauce
       alias :base_within_frame :within_frame
       alias :base_within_window :within_window
       alias :base_find_window :find_window
-      alias :base_body :body
-      alias :base_source :source
+      alias :base_html :html
       alias :base_execute_script :execute_script
       alias :base_evaluate_script :evaluate_script
 
       [:find, :visit, :current_url, :reset!, :within_frame,
-       :within_window, :find_window, :body, :source,
+       :within_window, :find_window, :html,
        :execute_script, :evaluate_script].each do |method|
         define_method(method) do |*args, &block|
           handle_retry(method, *args, &block)
