@@ -15,4 +15,5 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
 
   gem.add_dependency('sauce', "~> #{Sauce.version}")
+  gem.add_dependency('ffi')
 end

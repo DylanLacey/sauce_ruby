@@ -1,7 +1,9 @@
 require 'sauce/config'
+require "sauce/posix_library"
+require "sauce/tunnel"
 
 module Sauce
-  class Connect
+  module Connect
     TIMEOUT = 90
 
     attr_reader :status, :error
