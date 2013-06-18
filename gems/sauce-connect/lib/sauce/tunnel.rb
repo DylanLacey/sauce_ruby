@@ -5,7 +5,7 @@ module Sauce
     class Tunnel
       include POSIXLibrary
 
-      attr_reader :tunnel
+      attr_reader :tunnel, :running
 
       STRING_METHODS = [
           :tunnel_host,
@@ -26,14 +26,50 @@ module Sauce
 
       def initialize
         @tunnel = sc_new
+        @running = false
       rescue StandardError => e
+      end
+
+      def start
+        STDERR.puts "Beginning"
+        initialization = sc_init tunnel
+
+        STDERR.puts "Init"
+        unless initialization == 0
+          raise StandardError "Sauce Connect was unable to initialize"
+        end
+        STDERR.puts "passed the exec"
+
+        tunnel_started = sc_run tunnel
+
+        STDERR.puts "tunnel_started"
+
+        unless tunnel_started == 0
+          STDERR.puts "staring exception"
+          raise StandardError "Sauce Connect was unable to start"
+        else
+          STDERR.puts "Managed to start"
+          @running = true
+        end
+
+        STDERR.puts "Begun"
+      end
+
+      def status
+        sc_status tunnel
+      end
+
+      def stop
+        unless @running
+          sc_stop tunnel
+        end
       end
 
       def is_server=(value)
         native_value = value ? 1 : -1
         pointer_to_value =  FFI::MemoryPointer.new :int, 1
         pointer_to_value.write_array_of_int [native_value]
-        sc_set @tunnel, PARAMETERS[:is_server], pointer_to_value
+        sc_set tunnel, PARAMETERS[:is_server], pointer_to_value
       end
 
       def log_level=(value)
@@ -43,13 +79,13 @@ module Sauce
       def set_integer_parameter(parameter, value)
         FFI::MemoryPointer.new :int do |p|
           p.write_array_of_int [value]
-          sc_set @tunnel, PARAMETERS[parameter] , p
+          sc_set tunnel, PARAMETERS[parameter] , p
         end
       end
 
       def set_string_parameter(parameter, value)
         FFI::MemoryPointer.from_string(value) do |p|
-          sc_set @tunnel, PARAMETERS[parameter], p
+          sc_set tunnel, PARAMETERS[parameter], p
         end
       end
 
