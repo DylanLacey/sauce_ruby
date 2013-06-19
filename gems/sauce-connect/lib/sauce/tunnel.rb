@@ -24,10 +24,15 @@ module Sauce
           :local_port
       ]
 
+      VALUE_MAPPED_METHODS = [
+          :is_server,
+          :log_level
+      ]
+
       def initialize(params = {})
         @tunnel = sc_new
         @running = false
-        all_params = STRING_METHODS + INTEGER_METHODS
+        all_params = STRING_METHODS + INTEGER_METHODS + VALUE_MAPPED_METHODS
         params.select {|k, v| all_params.include? k}.each do |k,v|
           method = "#{k.to_s}=".to_sym
           self.send(method, v)
