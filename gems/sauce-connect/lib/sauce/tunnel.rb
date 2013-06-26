@@ -68,7 +68,8 @@ module Sauce
       end
 
       def status
-        sc_status tunnel
+        status = sc_status tunnel
+        STATUSES.fetch(status) {|unknown_status| "unknown_status_#{unknown_status}".to_s}
       end
 
       def stop
@@ -84,6 +85,11 @@ module Sauce
         sc_set tunnel, PARAMETERS[:is_server], pointer_to_value
       end
 
+      def is_server?
+        int_is_server = get_integer_parameter :is_server
+        return (int_is_server == 0)
+      end
+
       def log_level=(value)
         set_integer_parameter :log_level, LOG_LEVELS[value]
       end
@@ -92,6 +98,19 @@ module Sauce
         unparsed_level = get_integer_parameter :log_level
         return LOG_LEVELS.select {|k,v| v == unparsed_level}.first[0]
       end
+
+      def method_missing(method, *args)
+        if method.to_s.end_with? "="
+          return_value = attempt_missing_setter(method, args)
+        else
+          return_value = attempt_missing_getter(method)
+        end
+
+        return return_value unless return_value.nil?
+        super
+      end
+
+      private
 
       def get_integer_parameter(parameter)
         FFI::MemoryPointer.new(:int, 1) do |ptr|
@@ -127,19 +146,6 @@ module Sauce
         param = FFI::MemoryPointer.from_string(value)
         sc_set tunnel, PARAMETERS[parameter], param
       end
-
-      def method_missing(method, *args)
-        if method.to_s.end_with? "="
-          return_value = attempt_missing_setter(method, args)
-        else
-          return_value = attempt_missing_getter(method)
-        end
-
-        return return_value unless return_value.nil?
-        super
-      end
-
-      private
 
       def attempt_missing_getter(method)
         if STRING_METHODS.include? method

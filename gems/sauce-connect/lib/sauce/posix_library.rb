@@ -29,6 +29,11 @@ module Sauce
           :debug => 2
       }
 
+      STATUSES ={
+          0x01 => :running,
+          0x02 => :exiting
+      }
+
       # Get the configuration
       attach_function :sc_new, [], :pointer
 
