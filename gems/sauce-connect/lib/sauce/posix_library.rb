@@ -1,11 +1,11 @@
-require "ffi"
+require "sauce/library_tools"
 
 module Sauce
   module Connect
     module POSIXLibrary
       extend FFI::Library
 
-      ffi_lib "/Users/dylanlacey/.local/lib/libsauceconnect.dylib"
+      ffi_lib find_library
 
       PARAMETERS = {
         :is_server  => 0x01,     # int
