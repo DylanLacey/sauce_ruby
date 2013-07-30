@@ -79,7 +79,7 @@ module Sauce
       end
 
       def is_server=(value)
-        native_value = value ? 1 : -1
+        native_value = value ? 1 : 0
         pointer_to_value =  FFI::MemoryPointer.new :int, 1
         pointer_to_value.write_array_of_int [native_value]
         sc_set tunnel, PARAMETERS[:is_server], pointer_to_value
@@ -87,7 +87,7 @@ module Sauce
 
       def is_server?
         int_is_server = get_integer_parameter :is_server
-        return (int_is_server == 0)
+        return (int_is_server != 0)
       end
 
       def log_level=(value)
