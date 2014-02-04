@@ -18,13 +18,13 @@ namespace :spec do
   task :rspec do
     desc "Run an integration test with rspec and capybara"
     ensure_rvm!
-    sh "(cd spec/integration/rspec && ./run-test.sh)"
+    sh "bash --login -c \"cd spec/integration && ./test_script.sh ./rspec\""
   end
 
   task :testunit do
     desc "Run an integration test with testunit"
     ensure_rvm!
-    sh "(cd spec/integration/testunit && ./run-test.sh)"
+    sh "bash --login -c \"cd spec/integration && ./test_script.sh ./testunit\""
   end
 end
 
