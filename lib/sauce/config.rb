@@ -119,6 +119,10 @@ module Sauce
     end
 
     def [](key)
+      if key == :discardable_errors
+        STDERR.puts "getting values for discardable_errors"
+        @opts[:discardable_errors] = @opts[key] ||= []
+      end
       @opts[key]
     end
 
@@ -126,12 +130,28 @@ module Sauce
       if(key == :browsers)
         value = [value] unless value.first.instance_of?(Array)
       end
+
       @undefaulted_opts.merge!({key => value})
       @opts[key] = value
     end
 
     def has_key?(key)
       @opts.has_key? key
+    end
+
+    def get_discardable_errors
+      if @opts[:suppress_session_quit_failures]
+        STDERR.puts "SAUCE RUBY Configured to suppress"
+        return @opts[:discardable_errors] + [
+          {  :exception => Selenium::WebDriver::Error::WebDriverError, 
+             :message => "has already finished, and can't receive further commands"},
+          {  :exception => Selenium::WebDriver::Error::WebDriverError,
+             :message => "ERROR Job is not in progress"}
+        ]
+      else
+        STDERR.puts "SAUCE RUBY Not configured to suppress"
+        return @opts[:discardable_errors]
+      end
     end
 
     def silence_warnings

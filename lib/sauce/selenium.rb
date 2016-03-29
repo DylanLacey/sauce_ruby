@@ -102,11 +102,34 @@ module Sauce
     def quit_and_maybe_rescue driver
       begin
         driver.quit
-      rescue Selenium::WebDriver::Error::WebDriverError => e 
-        session_finished = e.message.match "has already finished, and can't receive further commands"
-        unless @config[:suppress_session_quit_failures] && session_finished
-          raise e
-        end   
+      rescue StandardError => e
+        discard_error = false
+        discardable_errors = @config.get_discardable_errors
+
+        STDERR.puts "Checking against #{discardable_errors.length} discardable errors"
+
+        unless discardable_errors.empty?
+          STDERR.puts discardable_errors
+          matching_exception_classes = discardable_errors.select { |ex| ex[:exception].name.eql? e.class.to_s }
+
+          matching_exception_classes.each do |ex|
+            STDERR.puts "Checking if #{ex} is matching by message"
+            if ex[:message]
+              if e.message.match ex[:message]
+                STDERR.puts "Discarding #{e.class} for matching discardable message #{e.message}"
+                Sauce.logger.debug "Discarding #{e.class} for matching discardable message #{e.message}"
+                discard_error = true
+              end
+            else
+              STDERR.puts "Discarding #{e} for matching discardable class"
+              Sauce.logger.debug "Discarding #{e} for matching discardable class"
+              discard_error = true
+            end
+          end
+        end
+
+        STDERR.puts "discard_error was #{discard_error}"
+        raise e unless discard_error
       end
     end
   end

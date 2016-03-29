@@ -133,15 +133,28 @@ module Sauce
         begin
           base_reset!
 
-        rescue Selenium::WebDriver::Error::WebDriverError => e 
-          session_finished = e.message.match "ERROR Job is not in progress"
+        rescue StandardError => e
+          discard_error = false
+          discardable_errors = @browser.config.get_discardable_errors
 
-          if @browser.config[:suppress_session_quit_failures] && session_finished
-            @browser=nil
-          else
-            raise e
+          unless discardable_errors.empty?
+            matching_exception_classes = discardable_errors.select { |ex| ex[:exception].name.eql? e.class.to_s }
+
+            matching_exception_classes.each do |ex|
+              if ex[:message]
+                if e.message.match ex[:message]
+                  Sauce.logger.debug "Capybara Discarding #{e.class} for matching discardable message #{e.message}"
+                  discard_error = true
+                end
+              else
+                Sauce.logger.debug "Capybara Discarding #{e.id} for matching discardable class"
+                discard_error = true
+              end
+            end
           end
-        end   
+
+          raise e unless discard_error
+        end
       end
 
       def render(path)

@@ -150,7 +150,12 @@ begin
                 the_test.run
                 success = example.exception.nil?
               ensure
+                STDERR.puts "STopping Selenium (status is #{success})"
+                unless success
+                  STDERR.puts "There was an exception, the horror: #{example.exception}"
+                end
                 @selenium.stop
+                STDERR.puts "Selenium stopped"
                 begin
                   os = caps[:os]
                   browser = caps[:browser]
